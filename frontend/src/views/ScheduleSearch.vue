@@ -123,6 +123,7 @@ import { ref, reactive, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
 import RouteMap from '../components/RouteMap.vue'
+import { API_PATH } from '@/const'
 
 const router = useRouter()
 const loading = ref(false)
@@ -254,7 +255,7 @@ async function handleSearch() {
       params.depart_at_to = `${form.departDate}T23:59:59Z`
     }
 
-    const res = await axios.get('/api/v1/schedules/search', { params })
+    const res = await axios.get(API_PATH.SCHEDULES_SEARCH, { params })
     schedules.value = res.data.schedules || []
     searched.value = true
   } catch (err) {
@@ -280,7 +281,7 @@ const mapBounds = computed(() => {
 // --- ユーティリティ (Utilities) ---
 
 function selectSchedule(s) { selectedSchedule.value = s }
-function goToBooking(s) { router.push(`/shipper/bookings/new?schedule_id=${s.id}`) }
+function goToBooking(s) { router.push({ name: 'BookingList', query: { schedule_id: s.id } }) }
 
 function formatDate(d) {
   if (!d) return '-'
