@@ -8,3 +8,4 @@ command.txt
 # AIの設定引き継がない
 .kiro/
 docs
+tmp
