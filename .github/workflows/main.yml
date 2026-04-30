@@ -34,9 +34,6 @@ jobs:
 
       - name: Build
         run: go build -v ./main.go
-      
-      - name: Security Audit
-        run: npm audit --audit-level=high
 
   # --- Frontend (Node.js) のジョブ ---
   frontend-ci:
@@ -64,3 +61,6 @@ jobs:
 
       - name: Build
         run: npm run build
+
+      - name: Security Audit
+        run: npm audit --audit-level=high
