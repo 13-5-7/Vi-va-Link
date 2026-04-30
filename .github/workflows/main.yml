@@ -5,6 +5,10 @@ on:
     branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
+  push:
+    branches: [ "main", "public-release" ]
+  pull_request:
+    branches: [ "main", "public-release" ]
 
 jobs:
   # --- Backend (Go) のジョブ ---
