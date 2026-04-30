@@ -6,5 +6,5 @@ command.txt
 .env
 
 # AIの設定引き継がない
-.kiro
+.kiro/
 docs

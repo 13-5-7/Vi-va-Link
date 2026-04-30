@@ -4,12 +4,12 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
-	//"strconv"
+	"strconv"
 	"time"
 	"log"
 
 	"github.com/bus-logistics/backend/model"
-	// "github.com/bus-logistics/backend/repository"
+	"github.com/bus-logistics/backend/repository"
 	"github.com/bus-logistics/backend/service"
 	"github.com/bus-logistics/backend/utils"
 	"github.com/google/uuid"
@@ -127,9 +127,88 @@ func (h *ScheduleHandler) Create(c echo.Context) error {
 
 // Search searches schedules by location and time range (for shippers)
 func (h *ScheduleHandler) Search(c echo.Context) error {
-	// TODO: ここから自分の手で実装する
-    panic("未実装：ここから製造実験開始 handlerSear")
+	log.Println("----handler Search called-----")
+
+	filter := repository.ScheduleFilter{}
+
+	// クエリパラメータを取得し、数値(float64)に変換する
+	parseFloat := func(key string) (*float64, error) {
+		v := c.QueryParam(key)
+		if utils.IsEmpty(v){
+			return nil, nil
+		}
+		f, err := strconv.ParseFloat(v, 64)
+		if err != nil {
+			return nil, err
+		}
+		return &f, nil
+	}
+
+	// クエリパラメータを取得し、RFC3339形式の日時(time.Time)に変換する
+	parseTime := func(key string) (*time.Time, error) {
+		v := c.QueryParam(key)
+		if utils.IsEmpty(v) {
+			return nil, nil
+		}
+		t, err := time.Parse(time.RFC3339, v)
+		if err != nil {
+			return nil, err
+		}
+		return &t, nil
+	}
+
+	// クエリパラメータを解析し、filter構造体の各フィールド(float64)に格納する
+	floatFields := []struct {
+		key string
+		dst **float64
+	}{
+		{"origin_lat_min", &filter.OriginLatMin},
+		{"origin_lat_max", &filter.OriginLatMax},
+		{"origin_lng_min", &filter.OriginLngMin},
+		{"origin_lng_max", &filter.OriginLngMax},
+		{"dest_lat_min", &filter.DestLatMin},
+		{"dest_lat_max", &filter.DestLatMax},
+		{"dest_lng_min", &filter.DestLngMin},
+		{"dest_lng_max", &filter.DestLngMax},
+	}
+	for _, f := range floatFields {
+		val, err := parseFloat(f.key)
+		if err != nil {
+			return utils.NewAppError(http.StatusBadRequest, "BAD_REQUEST", "invalid parameter: "+f.key)
+		}
+		*f.dst = val
+	}
+
+	// クエリパラメータを解析し、filter構造体の各フィールド(time.Time)に格納する
+	timeFields := []struct {
+		key string
+		dst **time.Time
+	}{
+		{"depart_at_from", &filter.DepartAtFrom},
+		{"depart_at_to", &filter.DepartAtTo},
+	}
+	for _, f := range timeFields {
+		val, err := parseTime(f.key)
+		if err != nil {
+			return utils.NewAppError(http.StatusBadRequest, "BAD_REQUEST", "invalid parameter: "+f.key+" (RFC3339 required)")
+		}
+		*f.dst = val
+	}
+
+	// 
+	schedules, err := h.scheduleService.Search(c.Request().Context(), filter)
+	if err != nil {
+		return utils.NewAppError(http.StatusInternalServerError, "INTERNAL_ERROR", "internal server error")
+	}
+
+	result := make([]map[string]any, 0, len(schedules))
+	for _, s := range schedules {
+		result = append(result, scheduleToMap(s, true))
+	}
+
+	return c.JSON(http.StatusOK, map[string]any{"schedules": result})
 }
+
 
 // UpdateStatus updates the schedule status and cascades to bookings
 func (h *ScheduleHandler) UpdateStatus(c echo.Context) error {
