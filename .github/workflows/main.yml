@@ -2,10 +2,6 @@ name: CI (Lint and Build)
 
 on:
   push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
-  push:
     branches: [ "main", "public-release" ]
   pull_request:
     branches: [ "main", "public-release" ]
