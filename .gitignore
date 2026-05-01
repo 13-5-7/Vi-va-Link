@@ -9,3 +9,8 @@ command.txt
 .kiro/
 docs
 tmp
+
+dist/
+dist-ssr/
+*.local
+node_modules/
