@@ -1,7 +1,7 @@
 <template>
   <MapView
     :markers="markers"
-    :routeGeoJSON="routeGeoJSON"
+    :route-geo-j-s-o-n="routeGeoJSON"
     :clickable="clickable"
     :center="center"
     :bounds="bounds"

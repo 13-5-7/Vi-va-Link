@@ -1,5 +1,8 @@
 <template>
-  <canvas ref="canvas" class="mx-auto"></canvas>
+  <canvas
+    ref="canvas"
+    class="mx-auto"
+  />
 </template>
 
 <script setup>

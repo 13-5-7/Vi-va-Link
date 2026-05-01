@@ -121,7 +121,7 @@ describe('BookingList', () => {
     const wrapper = mountWrapper()
     await vi.waitFor(() => expect(axios.get).toHaveBeenCalledTimes(1))
 
-    vi.advanceTimersByTime(60_000)
+    vi.advanceTimersByTime(60000)
     await vi.waitFor(() => expect(axios.get).toHaveBeenCalledTimes(2))
 
     wrapper.unmount()
@@ -134,7 +134,7 @@ describe('BookingList', () => {
     await vi.waitFor(() => expect(axios.get).toHaveBeenCalledTimes(1))
 
     wrapper.unmount()
-    vi.advanceTimersByTime(60_000)
+    vi.advanceTimersByTime(60000)
     // アンマウント後は追加呼び出しなし
     expect(axios.get).toHaveBeenCalledTimes(1)
   })

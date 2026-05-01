@@ -107,7 +107,7 @@ describe('Tracking', () => {
     await wrapper.find('form').trigger('submit')
     await vi.waitFor(() => expect(axios.get).toHaveBeenCalledTimes(1))
 
-    vi.advanceTimersByTime(30_000)
+    vi.advanceTimersByTime(30000)
     await vi.waitFor(() => expect(axios.get).toHaveBeenCalledTimes(2))
   })
 
@@ -126,7 +126,7 @@ describe('Tracking', () => {
     await wrapper.find('form').trigger('submit')
     await vi.waitFor(() => expect(axios.get).toHaveBeenCalledTimes(1))
 
-    vi.advanceTimersByTime(30_000)
+    vi.advanceTimersByTime(30000)
     // delivered なのでポーリングは追加呼び出しなし
     expect(axios.get).toHaveBeenCalledTimes(1)
   })

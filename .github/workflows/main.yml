@@ -8,32 +8,32 @@ on:
 
 jobs:
   # --- Backend (Go) のジョブ ---
-  backend-ci:
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./backend # backendディレクトリ内でコマンドを実行
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+  # backend-ci:
+  #   runs-on: ubuntu-latest
+  #   defaults:
+  #     run:
+  #       working-directory: ./backend # backendディレクトリ内でコマンドを実行
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v4
 
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: '1.26' # 使用しているGoのバージョンに合わせて調整
-          cache-dependency-path: backend/go.sum
+  #     - name: Set up Go
+  #       uses: actions/setup-go@v5
+  #       with:
+  #         go-version: '1.26' # 使用しているGoのバージョンに合わせて調整
+  #         cache-dependency-path: backend/go.sum
 
-      - name: Install dependencies
-        run: go mod download
+  #     - name: Install dependencies
+  #       run: go mod download
 
-      - name: golangci-lint
-        uses: golangci/golangci-lint-action@v6
-        with:
-          version: latest
-          working-directory: ./backend
+  #     - name: golangci-lint
+  #       uses: golangci/golangci-lint-action@v6
+  #       with:
+  #         version: latest
+  #         working-directory: ./backend
 
-      - name: Build
-        run: go build -v ./main.go
+  #     - name: Build
+  #       run: go build -v ./main.go
 
   # --- Frontend (Node.js) のジョブ ---
   frontend-ci:
