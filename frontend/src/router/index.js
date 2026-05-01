@@ -16,7 +16,7 @@ const routes = [
   { path: '/shipper/bookings', name: 'BookingList', component: () => import('../views/BookingList.vue'), meta: { requiresAuth: true, role: 'shipper' } },
   { path: '/shipper/bookings/new', name: 'BookingList', BookingCreate: () => import('../views/BookingCreate.vue'), meta: { requiresAuth: true, role: 'shipper' } },
   { path: '/shipper/companies', name: 'CompanyList', component: () => import('../views/CompanyList.vue'), meta: { requiresAuth: true, role: 'shipper' } },
-  { path: '/tracking', name: 'Tracking', component: () => import('../views/Tracking.vue') },
+  { path: '/tracking', name: 'Tracking', component: () => import('../views/TrackingView.vue') },
   { path: '/password-reset', name: 'PasswordResetRequest', component: () => import('../views/PasswordResetRequest.vue') },
   { path: '/password-reset/confirm', name: 'PasswordResetConfirm', component: () => import('../views/PasswordResetConfirm.vue') },
 ]
@@ -26,7 +26,7 @@ const router = createRouter({
     routes,
 })
 
-router.beforeEach((to, from) => {
+router.beforeEach((to, _from) => {
     const auth = useAuthStore()
 
     if (!to.meta.requiresAuth) {

@@ -3,39 +3,77 @@
     <div class="max-w-2xl mx-auto">
       <div class="bg-blue-700 text-white rounded-xl px-8 py-6 mb-6 flex items-center justify-between">
         <div>
-          <h2 class="text-xl font-bold mb-1">Operator ダッシュボード</h2>
-          <p class="text-sm opacity-80">バス運行管理システム</p>
+          <h2 class="text-xl font-bold mb-1">
+            Operator ダッシュボード
+          </h2>
+          <p class="text-sm opacity-80">
+            バス運行管理システム
+          </p>
         </div>
-        <button @click="handleLogout"
-          class="px-4 py-2 bg-white/20 border border-white/40 text-white rounded-lg text-sm hover:bg-white/30 transition-colors">
+        <button
+          class="px-4 py-2 bg-white/20 border border-white/40 text-white rounded-lg text-sm hover:bg-white/30 transition-colors"
+          @click="handleLogout"
+        >
           ログアウト
         </button>
       </div>
 
       <div class="grid grid-cols-2 gap-4">
-        <div @click="goToScheduleCreate"
-          class="bg-white rounded-xl shadow p-8 cursor-pointer hover:shadow-lg transition-shadow">
-          <div class="text-4xl mb-3">🗓️</div>
-          <h3 class="text-blue-700 font-semibold mb-2">スケジュール登録</h3>
-          <p class="text-sm text-gray-500">新しい運行スケジュールを登録します</p>
+        <div
+          class="bg-white rounded-xl shadow p-8 cursor-pointer hover:shadow-lg transition-shadow"
+          @click="goToScheduleCreate"
+        >
+          <div class="text-4xl mb-3">
+            🗓️
+          </div>
+          <h3 class="text-blue-700 font-semibold mb-2">
+            スケジュール登録
+          </h3>
+          <p class="text-sm text-gray-500">
+            新しい運行スケジュールを登録します
+          </p>
         </div>
-        <div @click="goToScheduleList"
-          class="bg-white rounded-xl shadow p-8 cursor-pointer hover:shadow-lg transition-shadow">
-          <div class="text-4xl mb-3">📋</div>
-          <h3 class="text-blue-700 font-semibold mb-2">スケジュール一覧</h3>
-          <p class="text-sm text-gray-500">登録済みスケジュールと予約状況を確認します</p>
+        <div
+          class="bg-white rounded-xl shadow p-8 cursor-pointer hover:shadow-lg transition-shadow"
+          @click="goToScheduleList"
+        >
+          <div class="text-4xl mb-3">
+            📋
+          </div>
+          <h3 class="text-blue-700 font-semibold mb-2">
+            スケジュール一覧
+          </h3>
+          <p class="text-sm text-gray-500">
+            登録済みスケジュールと予約状況を確認します
+          </p>
         </div>
-        <div @click="goToOperatorMyPage"
-          class="bg-white rounded-xl shadow p-8 cursor-pointer hover:shadow-lg transition-shadow col-span-2">
-          <div class="text-4xl mb-3">🏢</div>
-          <h3 class="text-blue-700 font-semibold mb-2">マイページ</h3>
-          <p class="text-sm text-gray-500">所属会社の情報・荷物置き場の案内を管理します</p>
+        <div
+          class="bg-white rounded-xl shadow p-8 cursor-pointer hover:shadow-lg transition-shadow col-span-2"
+          @click="goToOperatorMyPage"
+        >
+          <div class="text-4xl mb-3">
+            🏢
+          </div>
+          <h3 class="text-blue-700 font-semibold mb-2">
+            マイページ
+          </h3>
+          <p class="text-sm text-gray-500">
+            所属会社の情報・荷物置き場の案内を管理します
+          </p>
         </div>
-        <div @click="goToQRScan"
-          class="bg-white rounded-xl shadow p-8 cursor-pointer hover:shadow-lg transition-shadow col-span-2">
-          <div class="text-4xl mb-3">📷</div>
-          <h3 class="text-blue-700 font-semibold mb-2">QRスキャン</h3>
-          <p class="text-sm text-gray-500">荷物のQRコードを読み取ってステータスを更新します</p>
+        <div
+          class="bg-white rounded-xl shadow p-8 cursor-pointer hover:shadow-lg transition-shadow col-span-2"
+          @click="goToQRScan"
+        >
+          <div class="text-4xl mb-3">
+            📷
+          </div>
+          <h3 class="text-blue-700 font-semibold mb-2">
+            QRスキャン
+          </h3>
+          <p class="text-sm text-gray-500">
+            荷物のQRコードを読み取ってステータスを更新します
+          </p>
         </div>
       </div>
     </div>

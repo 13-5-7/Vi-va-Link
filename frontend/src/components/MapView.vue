@@ -1,12 +1,34 @@
 <template>
   <div class="relative h-full w-full">
-    <div ref="mapContainer" class="h-full w-full"></div>
+    <div
+      ref="mapContainer"
+      class="h-full w-full"
+    />
     <!-- ローディングオーバーレイ -->
-    <div v-if="loading" class="absolute inset-0 bg-white/60 flex items-center justify-center z-[1000] pointer-events-none">
+    <div
+      v-if="loading"
+      class="absolute inset-0 bg-white/60 flex items-center justify-center z-[1000] pointer-events-none"
+    >
       <div class="flex items-center gap-2 bg-white px-4 py-2 rounded-full shadow text-sm text-gray-600">
-        <svg class="animate-spin h-4 w-4 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
-          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+        <svg
+          class="animate-spin h-4 w-4 text-blue-600"
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+        >
+          <circle
+            class="opacity-25"
+            cx="12"
+            cy="12"
+            r="10"
+            stroke="currentColor"
+            stroke-width="4"
+          />
+          <path
+            class="opacity-75"
+            fill="currentColor"
+            d="M4 12a8 8 0 018-8v8z"
+          />
         </svg>
         経路を取得中...
       </div>

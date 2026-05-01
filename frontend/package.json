@@ -7,7 +7,8 @@
     "dev": "vite --host 0.0.0.0",
     "build": "vite build",
     "preview": "vite preview",
-    "test": "vitest --run"
+    "test": "vitest --run",
+    "lint": "eslint . --ext .vue,.js --fix"
   },
   "dependencies": {
     "axios": "1.15.1",
@@ -21,6 +22,8 @@
     "@vitejs/plugin-vue": "6.0.6",
     "@vitest/coverage-v8": "4.1.4",
     "@vue/test-utils": "2.4.6",
+    "eslint": "^8.57.0",
+    "eslint-plugin-vue": "^9.23.0",
     "jsdom": "29.0.2",
     "tailwindcss": "4.2.2",
     "vite": "8.0.8",

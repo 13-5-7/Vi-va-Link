@@ -186,9 +186,65 @@ func (r *ScheduleRepository) ListByOperator(ctx context.Context, operatorID uuid
 	return collectSchedules(ctx, r, rows)
 }
 
+// Search は指定されたフィルタ条件に基づいて、ステータスが 'open' のスケジュールを検索
 func (r *ScheduleRepository) Search(ctx context.Context, filter ScheduleFilter) ([]model.Schedule, error) {
-	// TODO: ここから自分の手で実装する
-    panic("未実装：ここから製造実験開始")
+	log.Println("----repository Search called-----")
+
+	// 基本クエリ（公開中のスケジュールのみを対象とする）
+	query := `SELECT ` + scheduleColumns + ` FROM schedules WHERE status = 'open'`
+	args := []any{}
+	idx := 1
+
+	// 指定されたカラムに対して検索条件(AND)を動的に追加するヘルパー関数
+	addFilter := func(col, op string, val any) {
+		query += fmt.Sprintf(" AND %s %s $%d", col, op, idx)
+		args = append(args, val)
+		idx++
+	}
+
+	// 緯度・経度(出発地/目的地)の範囲指定があればフィルタを追加
+	if filter.OriginLatMin != nil {
+		addFilter("origin_lat", ">=", *filter.OriginLatMin)
+	}
+	if filter.OriginLatMax != nil {
+		addFilter("origin_lat", "<=", *filter.OriginLatMax)
+	}
+	if filter.OriginLngMin != nil {
+		addFilter("origin_lng", ">=", *filter.OriginLngMin)
+	}
+	if filter.OriginLngMax != nil {
+		addFilter("origin_lng", "<=", *filter.OriginLngMax)
+	}
+	if filter.DestLatMin != nil {
+		addFilter("dest_lat", ">=", *filter.DestLatMin)
+	}
+	if filter.DestLatMax != nil {
+		addFilter("dest_lat", "<=", *filter.DestLatMax)
+	}
+	if filter.DestLngMin != nil {
+		addFilter("dest_lng", ">=", *filter.DestLngMin)
+	}
+	if filter.DestLngMax != nil {
+		addFilter("dest_lng", "<=", *filter.DestLngMax)
+	}
+	if filter.DepartAtFrom != nil {
+		addFilter("depart_at", ">=", *filter.DepartAtFrom)
+	}
+	if filter.DepartAtTo != nil {
+		addFilter("depart_at", "<=", *filter.DepartAtTo)
+	}
+
+	// 出発時間の昇順で並び替えて実行
+	query += " ORDER BY depart_at ASC"
+
+	rows, err := r.pool.Query(ctx, query, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	// 取得したレコードを構造体のスライスにマッピングして返す
+	return collectSchedules(ctx, r, rows)
 }
 
 func collectSchedules(ctx context.Context, r *ScheduleRepository, rows pgx.Rows) ([]model.Schedule, error) {

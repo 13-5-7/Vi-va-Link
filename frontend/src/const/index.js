@@ -3,7 +3,11 @@ export const ROLES = {
   SHIPPER: 'shipper',
 };
 
+const BASE_API = '/api/v1';
+
 export const API_PATH = {
-  LOGIN: '/api/v1/auth/login',
-  LOGOUT: '/api/v1/auth/logout',
+  BASE: BASE_API,
+  LOGIN: `${BASE_API}/auth/login`,
+  LOGOUT: `${BASE_API}/auth/logout`,
+  SCHEDULES_SEARCH: `${BASE_API}/schedules/search`
 };
