@@ -96,5 +96,70 @@
 </template>
 
 <script setup>
+import { ref, onMounted, onUnmounted } from 'vue'
+import { useRouter } from 'vue-router'
+import axios from 'axios'
+import BookingStatusBadge from '../components/BookingStatusBadge.vue'
+import { API_PATH } from '@/const'
 
+const router = useRouter()
+const bookings = ref([])
+const loading = ref(false)
+const errorMessage = ref('')
+const scheduleMap = ref({})
+let pollTimer = null
+
+// 予約一覧を取得し、付随するスケジュール情報も更新する
+async function fetchBookings() {
+  if (bookings.value.length === 0) loading.value = true
+  errorMessage.value = ''
+  try {
+    const res = await axios.get(API_PATH.BOOKINGS)
+    bookings.value = res.data.bookings || []
+    await fetchSchedules()
+  } catch (err) {
+    const status = err.response?.status
+    const msg = err.response?.data?.error?.message || err.message
+    errorMessage.value = `予約一覧の取得に失敗しました。(${status}: ${msg})`
+  }
+  finally { loading.value = false }
+}
+
+// 予約に関連するスケジュール詳細を個別に取得してマッピングする
+async function fetchSchedules() {
+  // const ids = {...new Set(bookings.value.map(b => b.schedule_id))}
+  const ids = Array.from(new Set(bookings.value.map(b => b.schedule_id)))
+  await Promise.all(ids.map(async id => {
+    try {
+      const res = await axios.get(`${API_PATH.SCHEDULES}/${id}`); scheduleMap.value[id] = res.data
+    } catch(err) {
+      console.error(`スケジュールの取得に失敗しました(ID: ${id}):`, err);
+    }
+  }))
+}
+
+// 日時を ja-JP 形式 (yyyy/mm/dd hh:mm) にフォーマット
+function formatDate(d) {
+  if (!d) return '-'
+  return new Date(d).toLocaleString('ja-JP', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })
+}
+
+// 指定された予約を削除し、一覧を再取得する
+async function cancelBooking(b) {
+  if (!confirm(`追跡番号「${b.tracking_number}」の予約をキャンセルしますか？`)) return
+  try {
+    await axios.delete(`${API_PATH.BOOKINGS}/${b.id}`)
+    await fetchBookings()
+  } catch (err) {
+    const code = err.response?.data?.error?.code
+    if (code === 'CANNOT_CANCEL') alert('この予約はキャンセルできません（積載済み以降は不可）。')
+    else if (code === 'FORBIDDEN') alert('この予約をキャンセルする権限がありません。')
+    else alert('キャンセルに失敗しました。')
+  }
+}
+
+// コンポーネントのマウント時に初回実行と60秒毎の定期更新（ポーリング）を設定
+onMounted(() => { fetchBookings(); pollTimer = setInterval(fetchBookings, 60000) })
+// アンマウント時にタイマーを破棄してメモリリークを防止
+onUnmounted(() => clearInterval(pollTimer))
 </script>
