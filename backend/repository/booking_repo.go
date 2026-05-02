@@ -49,8 +49,34 @@ func (r *BookingRepository) FindByTrackingNumber(ctx context.Context, trackingNu
 
 // ListByShipper は荷主IDに紐づくbooking一覧を返す
 func (r *BookingRepository) ListByShipper(ctx context.Context, shipperID uuid.UUID) ([]model.Booking, error) {
-	// TODO: ここから自分の手で実装する
-    panic("未実装：ここから製造実験開始")
+	log.Println("----repository ListByShipper called-----")
+
+	// shipperIDをキーに予約一覧（降順）を取得する
+	rows, err := r.pool.Query(ctx,
+		`SELECT `+bookingColumns+` FROM bookings WHERE shipper_id = $1 ORDER BY created_at DESC`,
+		shipperID,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	// 取得したデータをマッピング
+	var bookings []model.Booking
+	for rows.Next() {
+		var b model.Booking
+		err := rows.Scan(
+			&b.ID, &b.ScheduleID, &b.ShipperID, &b.TrackingNumber,
+			&b.WeightKg, &b.SizeCm, &b.ContentDesc,
+			&b.RecipientName, &b.RecipientPhone, &b.RecipientAddr,
+			&b.Status, &b.StatusUpdatedAt, &b.CreatedAt,
+		)
+		if err != nil {
+			return nil, err
+		}
+		bookings = append(bookings, b)
+	}
+	return bookings, rows.Err()
 }
 
 // UpdateStatus はトランザクション内でbookingのステータスをUPDATEする

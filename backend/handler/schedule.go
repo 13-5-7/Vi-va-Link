@@ -263,9 +263,28 @@ func (h *ScheduleHandler) UpdateStatus(c echo.Context) error {
 	// 成功した場合は新しいステータスを返す
 	return c.JSON(http.StatusOK, map[string]any{"status": req.Status})
 }
+
+// GetByID はパスパラメータのIDに該当するスケジュールを1件取得し、JSONで返却
 func (h *ScheduleHandler) GetByID(c echo.Context) error {
-	// TODO: ここから自分の手で実装する
-    panic("未実装：ここから製造実験開始 handlerGetBy")
+	log.Println("----handler GetByID called-----")
+
+	idStr := c.Param("id")
+	id, err := uuid.Parse(idStr)
+	if err != nil {
+		// パース失敗 = 不正なリクエスト
+		return utils.NewAppError(http.StatusBadRequest, "BAD_REQUEST", "invalid schedule id")
+	}
+	
+	schedule, err := h.scheduleService.GetByID(c.Request().Context(), id)
+	if err != nil {
+		// 内部エラーはログ等に詳細は残すが、クライアントには汎用的なメッセージを返す
+		return utils.NewAppError(http.StatusInternalServerError, "INTERNAL_ERROR", "internal server error")
+	}
+	if schedule == nil {
+		return utils.NewAppError(http.StatusNotFound, "NOT_FOUND", "schedule not found")
+	}
+
+	return c.JSON(http.StatusOK, scheduleToMap(*schedule, true))
 }
 
 // Delete removes a schedule (only if no bookings and not departed)

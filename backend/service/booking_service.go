@@ -3,12 +3,13 @@ package service
 import (
 	"context"
 	"errors"
+	"log"
 	//"fmt"
 
 	"github.com/bus-logistics/backend/model"
 	"github.com/bus-logistics/backend/repository"
 	"github.com/google/uuid"
-	//"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -54,8 +55,7 @@ func (s *BookingService) Create(ctx context.Context, req CreateBookingRequest) (
 }
 
 func (s *BookingService) ListByShipper(ctx context.Context, shipperID uuid.UUID) ([]model.Booking, error) {
-	// TODO: ここから自分の手で実装する
-    panic("未実装：ここから製造実験開始")
+	return s.bookingRepo.ListByShipper(ctx, shipperID)
 }
 
 func (s *BookingService) GetByID(ctx context.Context, id uuid.UUID) (*model.Booking, error) {
@@ -64,7 +64,66 @@ func (s *BookingService) GetByID(ctx context.Context, id uuid.UUID) (*model.Book
 }
 
 // Cancel はステータスが accepted の予約をキャンセルし、スケジュールの残余重量を回復する
+// ステータスが 'accepted' の場合のみ実行可能
 func (s *BookingService) Cancel(ctx context.Context, bookingID uuid.UUID, shipperID uuid.UUID) error {
-	// TODO: ここから自分の手で実装する
-    panic("未実装：ここから製造実験開始")
+	log.Println("----service Cancel called-----")
+
+	tx, err := s.pool.Begin(ctx)
+	if err != nil {
+		return err
+	}
+	// エラー発生時はロールバック、正常時は Commit 後に呼ばれても影響なし
+	defer func() {
+		if err != nil {
+			tx.Rollback(ctx)
+		}
+	}()
+
+	var dbShipperID uuid.UUID
+	var status model.BookingStatus
+	var weightKg float64
+	var scheduleID uuid.UUID
+
+	// 更新対象をロックして取得 (Race Condition 防止)
+	err = tx.QueryRow(ctx,
+		`SELECT shipper_id, status, weight_kg, schedule_id FROM bookings WHERE id = $1 FOR UPDATE`,
+		bookingID,
+	).Scan(&dbShipperID, &status, &weightKg, &scheduleID)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			err = ErrBookingNotFound
+		}
+		return err
+	}
+
+	// 所有権とステータスのチェック
+	if dbShipperID != shipperID {
+		err = ErrForbidden
+		return err
+	}
+
+	if status != model.BookingStatusAccepted {
+		err = ErrCannotCancel
+		return err
+	}
+
+	// 予約ステータスの更新
+	_, err = tx.Exec(ctx,
+		`UPDATE bookings SET status = 'cancelled', status_updated_at = NOW() WHERE id = $1`,
+		bookingID,
+	)
+	if err != nil {
+		return err
+	}
+
+	// スケジュールの在庫（可能重量）を戻す
+	_, err = tx.Exec(ctx,
+		`UPDATE schedules SET avail_weight_kg = avail_weight_kg + $1 WHERE id = $2`,
+		weightKg, scheduleID,
+	)
+	if err != nil {
+		return err
+	}
+
+	return tx.Commit(ctx)
 }
