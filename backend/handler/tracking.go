@@ -24,7 +24,7 @@ func (h *TrackingHandler) GetByTrackingNumber(c echo.Context) error {
     panic("未実装：ここから製造実験開始")
 }
 
-type updateStatusRequest struct {
+type updateStatusRequest struct { //nolint:unused
 	Status model.BookingStatus `json:"status"`
 }
 

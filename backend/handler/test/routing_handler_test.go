@@ -39,7 +39,9 @@ func TestGetRoute_BadRequest_MissingParams(t *testing.T) {
 				t.Errorf("want 400, got %d", rec.Code)
 			}
 			var body map[string]string
-			json.Unmarshal(rec.Body.Bytes(), &body)
+			if err := json.Unmarshal(rec.Body.Bytes(), &body); err != nil {
+				t.Fatalf("failed to unmarshal response body: %v", err)
+			}
 			if body["error"] != tt.errKey {
 				t.Errorf("want error=%q, got %q", tt.errKey, body["error"])
 			}
@@ -90,7 +92,9 @@ func TestGetRoute_Fallback_CoordinatesOrder(t *testing.T) {
 	_ = h.GetRoute(c)
 
 	var body map[string]any
-	json.Unmarshal(rec.Body.Bytes(), &body)
+	if err := json.Unmarshal(rec.Body.Bytes(), &body); err != nil {
+		t.Fatalf("failed to unmarshal response body: %v", err)
+	}
 
 	coords := body["coordinates"].([]any)
 	origin := coords[0].([]any)

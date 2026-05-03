@@ -538,7 +538,7 @@ func TestScheduleService_UpdateStatus_Success_DepartedToArrived(t *testing.T) {
 }
 
 // mockScheduleRepoAdapter は Delete を含む scheduleRepoIface の実装（Delete テスト用）
-type mockScheduleRepoAdapter struct {
+type mockScheduleRepoAdapter struct { //nolint:unused
 	create         func(ctx context.Context, s *model.Schedule) (*model.Schedule, error)
 	findByID       func(ctx context.Context, id uuid.UUID) (*model.Schedule, error)
 	listByOperator func(ctx context.Context, operatorID uuid.UUID) ([]model.Schedule, error)
@@ -547,22 +547,22 @@ type mockScheduleRepoAdapter struct {
 	delete         func(ctx context.Context, id uuid.UUID) error
 }
 
-func (m *mockScheduleRepoAdapter) Create(ctx context.Context, s *model.Schedule) (*model.Schedule, error) {
+func (m *mockScheduleRepoAdapter) Create(ctx context.Context, s *model.Schedule) (*model.Schedule, error) { //nolint:unused
 	return m.create(ctx, s)
 }
-func (m *mockScheduleRepoAdapter) FindByID(ctx context.Context, id uuid.UUID) (*model.Schedule, error) {
+func (m *mockScheduleRepoAdapter) FindByID(ctx context.Context, id uuid.UUID) (*model.Schedule, error) { //nolint:unused
 	return m.findByID(ctx, id)
 }
-func (m *mockScheduleRepoAdapter) ListByOperator(ctx context.Context, operatorID uuid.UUID) ([]model.Schedule, error) {
+func (m *mockScheduleRepoAdapter) ListByOperator(ctx context.Context, operatorID uuid.UUID) ([]model.Schedule, error) { //nolint:unused
 	return m.listByOperator(ctx, operatorID)
 }
-func (m *mockScheduleRepoAdapter) Search(ctx context.Context, filter repository.ScheduleFilter) ([]model.Schedule, error) {
+func (m *mockScheduleRepoAdapter) Search(ctx context.Context, filter repository.ScheduleFilter) ([]model.Schedule, error) { //nolint:unused
 	return m.search(ctx, filter)
 }
-func (m *mockScheduleRepoAdapter) UpdateStatus(ctx context.Context, id uuid.UUID, status model.ScheduleStatus) error {
+func (m *mockScheduleRepoAdapter) UpdateStatus(ctx context.Context, id uuid.UUID, status model.ScheduleStatus) error { //nolint:unused
 	return m.updateStatus(ctx, id, status)
 }
-func (m *mockScheduleRepoAdapter) Delete(ctx context.Context, id uuid.UUID) error {
+func (m *mockScheduleRepoAdapter) Delete(ctx context.Context, id uuid.UUID) error { //nolint:unused
 	return m.delete(ctx, id)
 }
 

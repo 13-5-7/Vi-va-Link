@@ -33,11 +33,11 @@ func IsEmpty(any interface{}) bool {
 }
 
 // IsSliceEmpty はスライスがnilまたは長さ0かを判定
-func isSliceEmpty[T any](s []T) bool {
+func isSliceEmpty[T any](s []T) bool { //nolint:unused
 	return len(s) == 0
 }
 
 // IsPtrNil はポインタがnilかどうかを判定
-func isPtrNil[T any](ptr *T) bool {
+func isPtrNil[T any](ptr *T) bool { //nolint:unused
 	return ptr == nil
 }
