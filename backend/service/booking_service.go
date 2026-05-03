@@ -75,7 +75,11 @@ func (s *BookingService) Cancel(ctx context.Context, bookingID uuid.UUID, shippe
 	// エラー発生時はロールバック、正常時は Commit 後に呼ばれても影響なし
 	defer func() {
 		if err != nil {
-			tx.Rollback(ctx)
+			if rbErr := tx.Rollback(ctx); rbErr != nil {
+				log.Printf("failed to rollback: %v (original error: %v)", rbErr, err)
+			} else {
+				log.Printf("transaction rolled back due to error: %v", err)
+			}
 		}
 	}()
 

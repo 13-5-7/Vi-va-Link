@@ -1,5 +1,10 @@
 FROM golang:1.26-alpine
 
+# Install and configure golangci-lint for static analysis
+RUN apk add --no-cache ca-certificates git
+RUN go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.64.5
+ENV PATH=$PATH:/go/bin
+
 WORKDIR /app
 
 # Install Air for hot reload

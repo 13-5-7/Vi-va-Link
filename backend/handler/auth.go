@@ -26,7 +26,7 @@ func NewAuthHandler(authService AuthServiceInterface) *AuthHandler {
 	return &AuthHandler{authService: authService}
 }
 
-type registerRequest struct {
+type registerRequest struct { //nolint:unused
 	Email      string `json:"email"`
 	Password   string `json:"password"`
 	Role       string `json:"role"`
@@ -39,7 +39,7 @@ type loginRequest struct {
 	Role     string `json:"role"`
 }
 
-func errResponse(code, message string) map[string]any {
+func errResponse(code, message string) map[string]any { //nolint:unused
 	return map[string]any{
 		"error": map[string]string{
 			"code":    code,

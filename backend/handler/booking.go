@@ -19,7 +19,7 @@ func NewBookingHandler(bookingService BookingServiceInterface) *BookingHandler {
 	return &BookingHandler{bookingService: bookingService}
 }
 
-type createBookingRequest struct {
+type createBookingRequest struct { //nolint:unused
 	ScheduleID     uuid.UUID `json:"schedule_id"`
 	WeightKg       float64   `json:"weight_kg"`
 	SizeCm         float64   `json:"size_cm"`

@@ -48,7 +48,7 @@ func (s *PasswordResetService) ResetPassword(ctx context.Context, token, newPass
 }
 
 // generateSecureToken は暗号学的に安全なランダムトークンを生成する
-func generateSecureToken(length int) (string, error) {
+func generateSecureToken(length int) (string, error) { //nolint:unused
 	// TODO: ここから自分の手で実装する
     panic("未実装：ここから製造実験開始")
 }

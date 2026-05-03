@@ -48,11 +48,16 @@ func CustomErrorHandler(err error, c echo.Context) {
 
     // レスポンス送信
     if !c.Response().Committed {
-        c.JSON(code, map[string]any{
+        if errJSON := c.JSON(code, map[string]any{
             "error": map[string]string{
                 "code":    errorCode,
                 "message": message,
             },
-        })
+        }); errJSON != nil {
+            log.Printf("failed to send json response: %v", errJSON)
+        }
+        if err != nil {
+            log.Printf("original error: %v", err)
+        }
     }
 }

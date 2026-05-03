@@ -16,7 +16,7 @@ import (
 
 type authServiceImpl struct {
 	repo      userRepoIface
-	jwtSecret string
+	jwtSecret string //nolint:unused
 }
 
 type userRepoIface interface {

@@ -24,7 +24,7 @@ const bookingColumns = `id, schedule_id, shipper_id, tracking_number,
 	recipient_name, recipient_phone, recipient_addr,
 	status, status_updated_at, created_at`
 
-func scanBooking(row pgx.Row) (*model.Booking, error) {
+func scanBooking(row pgx.Row) (*model.Booking, error) { //nolint:unused
 	// TODO: ここから自分の手で実装する
     panic("未実装：ここから製造実験開始")
 }

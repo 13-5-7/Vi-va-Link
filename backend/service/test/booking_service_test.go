@@ -15,7 +15,7 @@ import (
 // テスト用 BookingService: pool を使わずロジックのみ検証
 type bookingServiceImpl struct {
 	bookingRepo  bookingRepoIface
-	scheduleRepo scheduleRepoIface
+	scheduleRepo scheduleRepoIface //nolint:unused
 }
 
 func (s *bookingServiceImpl) Create(ctx context.Context, req service.CreateBookingRequest, availWeightKg, maxSizeCm float64) (*model.Booking, error) {
