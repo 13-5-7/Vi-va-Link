@@ -103,5 +103,58 @@
 </template>
 
 <script setup>
+import { ref, watch, onUnmounted } from 'vue'
+import { useRouter } from 'vue-router'
+import axios from 'axios'
+import BookingStatusBadge from '../components/BookingStatusBadge.vue'
+import { useAuthStore } from '../stores/auth.js'
+import { API_PATH } from '@/const'
 
+const router = useRouter()
+const auth = useAuthStore()
+const trackingNumber = ref('')
+const loading = ref(false)
+const errorMessage = ref('')
+const result = ref(null)
+let pollTimer = null
+
+// 検索実行：APIから最新情報を取得し、定期更新(ポーリング)を開始する
+async function handleSearch() {
+  loading.value = true; errorMessage.value = ''; result.value = null
+  try {
+    const res = await axios.get(`${API_PATH.TRACKING}/${trackingNumber.value}`)
+    result.value = res.data; startPolling() // 成功時のみ自動更新を開始
+  } catch (err) {
+    // 404なら未登録、それ以外はシステムエラーとして扱う
+    errorMessage.value = err.response?.status === 404? '指定された追跡番号が見つかりません。' : '照会に失敗しました。'
+    stopPolling()
+  } finally { loading.value = false }
+}
+
+// データ更新：ポーリングから呼ばれるサイレントな更新処理
+async function refreshTracking() {
+  if (!trackingNumber.value || !result.value) return
+  try {
+    const res = await axios.get(`${API_PATH.TRACKING}/${trackingNumber.value}`)
+    result.value = res.data
+    // 配送完了またはキャンセルになったら自動更新を停止
+    if (result.value.status === 'delivered' || result.value.status === 'cancelled') stopPolling()
+  } catch(err) {
+    console.error(`追跡情報の更新に失敗しました。:`, err);
+  }
+}
+
+// ポーリング制御：30秒間隔でステータスを確認
+function startPolling() { stopPolling(); if (result.value?.status === 'delivered' || result.value?.status === 'cancelled') return; pollTimer = setInterval(refreshTracking, 30000) }
+function stopPolling() { if (pollTimer) { clearInterval(pollTimer); pollTimer = null } }
+// ライフサイクル管理：コンポーネント破棄時にタイマーを確実に止める（メモリリーク防止）
+onUnmounted(stopPolling)
+// 入力変更監視：検索番号が変わったら以前の結果とタイマーをリセット
+watch(trackingNumber, () => { stopPolling(); result.value = null })
+
+// 日時を ja-JP 形式 (yyyy/mm/dd hh:mm) にフォーマット
+function formatDate(d) {
+  if (!d) return '-'
+  return new Date(d).toLocaleString('ja-JP', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })
+}
 </script>
