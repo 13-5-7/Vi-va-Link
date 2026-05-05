@@ -2,7 +2,7 @@ package repository
 
 import (
 	"context"
-	//"errors"
+	"errors"
 	"log"
 
 	"github.com/bus-logistics/backend/model"
@@ -24,9 +24,20 @@ const bookingColumns = `id, schedule_id, shipper_id, tracking_number,
 	recipient_name, recipient_phone, recipient_addr,
 	status, status_updated_at, created_at`
 
-func scanBooking(row pgx.Row) (*model.Booking, error) { //nolint:unused
-	// TODO: ここから自分の手で実装する
-    panic("未実装：ここから製造実験開始")
+func scanBooking(row pgx.Row) (*model.Booking, error) {
+	log.Println("----repository scanBooking called-----")
+
+	var b model.Booking
+	err := row.Scan(
+		&b.ID, &b.ScheduleID, &b.ShipperID, &b.TrackingNumber,
+		&b.WeightKg, &b.SizeCm, &b.ContentDesc,
+		&b.RecipientName, &b.RecipientPhone, &b.RecipientAddr,
+		&b.Status, &b.StatusUpdatedAt, &b.CreatedAt,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return &b, nil
 }
 
 // Create はトランザクション内でbookingをINSERTする
@@ -41,10 +52,23 @@ func (r *BookingRepository) FindByID(ctx context.Context, id uuid.UUID) (*model.
     panic("未実装：ここから製造実験開始")
 }
 
-// FindByTrackingNumber はトラッキング番号でbookingを検索する
+// FindByTrackingNumber はトラッキング番号でbookingを検索し取得結果を返す
 func (r *BookingRepository) FindByTrackingNumber(ctx context.Context, trackingNumber string) (*model.Booking, error) {
-	// TODO: ここから自分の手で実装する
-    panic("未実装：ここから製造実験開始")
+	log.Println("----repository FindByTrackingNumber called-----")
+
+	row := r.pool.QueryRow(ctx,
+		`SELECT `+bookingColumns+` FROM bookings WHERE tracking_number = $1`, trackingNumber,
+	)
+	b, err := scanBooking(row)
+	if err != nil {
+		switch {
+		case errors.Is(err, pgx.ErrNoRows):
+			return nil, nil
+		default:
+			return nil, err
+		}
+	}
+	return b, nil
 }
 
 // ListByShipper は荷主IDに紐づくbooking一覧を返す

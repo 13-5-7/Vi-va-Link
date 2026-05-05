@@ -314,6 +314,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
 import RouteMap from '../components/RouteMap.vue'
+import { API_PATH } from '@/const'
 
 const router = useRouter()
 const schedules = ref([])
@@ -329,7 +330,7 @@ const mapBounds = computed(() => { const s = selectedSchedule.value; return s ? 
 // スケジュール取得API呼び出し
 async function fetchSchedules() {
   loading.value = true; errorMessage.value = ''
-  try { const res = await axios.get('/api/v1/schedules'); schedules.value = res.data.schedules || [] }
+  try { const res = await axios.get(API_PATH.SCHEDULES); schedules.value = res.data.schedules || [] }
   catch { errorMessage.value = 'スケジュールの取得に失敗しました。' }
   finally { loading.value = false }
 }
@@ -378,18 +379,18 @@ async function handleStatusUpdate(updateFn) {
 
 // 各ボタンから呼ばれる関数
 async function updateScheduleStatus(id, status) {
-  await handleStatusUpdate(() => axios.patch(`/api/v1/schedules/${id}/status`, { status }));
+  await handleStatusUpdate(() => axios.patch(`${API_PATH.SCHEDULES}/${id}/status`, { status }));
 }
 // 各ボタンから呼ばれる関数
 async function updateBookingStatus(id, status) {
-  await handleStatusUpdate(() => axios.patch(`/api/v1/bookings/${id}/status`, { status }));
+  await handleStatusUpdate(() => axios.patch(`${API_PATH.BOOKINGS}/${id}/status`, { status }));
 }
 
 // スケジュール削除API呼び出し
 async function deleteSchedule(s) {
   if (!confirm(`「${s.origin_name} → ${s.dest_name}」を削除しますか？`)) return
   try {
-    await axios.delete(`/api/v1/schedules/${s.id}`)
+    await axios.delete(`${API_PATH.SCHEDULES}/${s.id}`)
     if (selectedSchedule.value?.id === s.id) { selectedSchedule.value = null; bookings.value = []}
     await fetchSchedules()
   } catch (err) { alert(err.response?.data?.error?.message || '削除に失敗しました。') }
@@ -399,7 +400,7 @@ async function deleteSchedule(s) {
 async function cancelSchedule(s) {
   if (!confirm(`「${s.origin_name} → ${s.dest_name}」の運行を中止しますか？\n受付済みの予約は全てキャンセルされます。`)) return
   try {
-    await axios.post(`/api/v1/schedules/${s.id}/cancel`)
+    await axios.post(`${API_PATH.SCHEDULES}/${s.id}/cancel`)
     if (selectedSchedule.value?.id === s.id) { selectedSchedule.value = null; bookings.value = [] }
     await fetchSchedules()
   } catch (err) { alert(err.response?.data?.error?.message || '運行中止に失敗しました。') }

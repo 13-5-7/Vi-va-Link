@@ -251,27 +251,3 @@ open（受付中）→ full（満載）→ departed（出発済）→ arrived（
 | changed_at | TIMESTAMPTZ | |
 
 ---
-
-## 開発メモ
-
-### DB接続（コンテナ起動中）
-
-```bash
-docker compose exec db psql -U app -d bus_logistics
-```
-
-### よく使うコマンド
-
-```bash
-# 再ビルドして起動
-docker compose up -d --build
-
-# DBデータを含めて完全リセット（注意: データ消去）
-docker compose down -v
-
-# ビルドキャッシュ削除
-docker builder prune -f
-
-# 脆弱性チェック
-docker compose run --rm frontend npm audit
-```
