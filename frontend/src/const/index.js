@@ -12,5 +12,6 @@ export const API_PATH = {
   SCHEDULES_SEARCH: `${BASE_API}/schedules/search`,
   BOOKINGS: `${BASE_API}/bookings`,
   SCHEDULES: `${BASE_API}/schedules`,
-  TRACKING: `${BASE_API}/tracking`
+  TRACKING: `${BASE_API}/tracking`,
+  COMPANIES: `${BASE_API}/companies`
 };
