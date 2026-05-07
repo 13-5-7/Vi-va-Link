@@ -183,5 +183,49 @@
 </template>
 
 <script setup>
+import { ref, reactive, onMounted } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
+import axios from 'axios'
+import QRCodeDisplay from '../components/QRCodeDisplay.vue'
+import { API_PATH } from '@/const'
 
+const router = useRouter()
+const route = useRoute()
+const scheduleId = ref('')
+const loading = ref(false)
+const errorMessage = ref('')
+const trackingNumber = ref('')
+const form = reactive({ weightKg: '', sizeCm: '', contentDesc: '', recipientName: '', recipientPhone0: '', recipientAddr: '' })
+
+// 遷移元から渡されたスケジュールIDをURLクエリパラメータから取得し、初期値として設定
+onMounted(() => { scheduleId.value = route.query.schedule_id || ''})
+
+// 入力内容のバリデーションと予約登録APIの実行
+// 成功時は追跡番号を保持し、失敗時はエラーメッセージをセットする
+async function handleSubmit() {
+  if (!scheduleId.value) { errorMessage.value = 'スケジュールIDが指定されていません。'; return }
+  loading.value = true; errorMessage.value = ''
+  try {
+    const res = await axios.post(API_PATH.BOOKINGS, {
+      schedule_id: scheduleId.value, weight_kg: form.weightKg, size_cm: form.sizeCm,
+      content_desc: form.contentDesc, recipient_name: form.recipientName,
+      recipient_phone: form.recipientPhone, recipient_addr: form.recipientAddr,
+    })
+    trackingNumber.value = res.data.tracking_number
+  } catch (err) {
+    // エラーハンドリング
+    const code = err.response?.data?.code || err.response?.data?.error?.code
+    if (code === 'CAPACITY_EXCEEDED') errorMessage.value = '積載重量が超過しています。'
+    else if (code === 'SIZE_EXCEEDED') errorMessage.value = '積載サイズが超過しています。'
+    else if (code === 'WEIGHT_LIMIT_EXCEEDED') errorMessage.value = '1個あたりの重量は10kg以下にしてください。'
+    else if (code === 'SIZE_LIMIT_EXCEEDED') errorMessage.value = '3辺合計は140cm以下にしてください。'
+    else if (code === 'NOT_FOUNTD') errorMessage.value = '指定されたスケジュールが見つかりません。'
+    else errorMessage.value = err.response?.data?.message || '予約の登録に失敗しました。'
+  } finally { loading.value = false }
+}
+
+// QRコードを印刷する
+function printQR() {
+  window.print()
+}
 </script>
