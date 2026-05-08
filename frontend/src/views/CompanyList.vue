@@ -93,5 +93,28 @@
 </template>
 
 <script setup>
+import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import axios from 'axios'
+import { API_PATH } from '@/const'
 
+const router = useRouter()
+const companies = ref([])
+const loading = ref(true)
+const errorMessage = ref('')
+
+// 画面初期表示に必要なバス会社一覧を取得し、stateを更新する
+async function fetchCompanies() {
+  try {
+    const res = await axios.get(API_PATH.COMPANIES)
+    companies.value = res.data.companies || []
+  } catch {
+    errorMessage.value =  'バス会社情報の取得に失敗しました。'
+  } finally {
+    loading.value = false
+  }
+}
+
+// 初期表示時にリストが空だとユーザーが混乱するため、マウント時に取得
+onMounted(fetchCompanies)
 </script>

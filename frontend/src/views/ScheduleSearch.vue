@@ -412,7 +412,7 @@ const mapBounds = computed(() => {
 // --- ユーティリティ (Utilities) ---
 
 function selectSchedule(s) { selectedSchedule.value = s }
-function goToBooking(s) { router.push({ name: 'BookingList', query: { schedule_id: s.id } }) }
+function goToBooking(s) { router.push({ name: 'BookingCreate', query: { schedule_id: s.id } }) }
 
 function formatDate(d) {
   if (!d) return '-'
