@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	"log"
-	//"fmt"
+	"fmt"
 
 	"github.com/bus-logistics/backend/model"
 	"github.com/bus-logistics/backend/repository"
@@ -49,9 +49,91 @@ func NewBookingService(pool *pgxpool.Pool, bookingRepo *repository.BookingReposi
 	return &BookingService{pool: pool, bookingRepo: bookingRepo}
 }
 
+// Create は新しい予約を登録する
+// 指定されたスケジュールの空き容量を確認し、予約枠を確保した上で予約レコードを作成
 func (s *BookingService) Create(ctx context.Context, req CreateBookingRequest) (*model.Booking, error) {
-	// TODO: ここから自分の手で実装する
-    panic("未実装：ここから製造実験開始")
+	log.Println("----handler/booking_service.go Create called-----")
+
+	// システム制限チェック（スケジュール容量より先に検証）
+	if req.WeightKg <= 0 {
+		return nil, ErrWeightLimitExceeded
+	}
+	if req.SizeCm <= 0 {
+		return nil, ErrSizeLimitExceeded
+	}
+	if req.WeightKg > MaxWeightKgPerItem {
+		return nil, ErrWeightLimitExceeded
+	}
+	if req.SizeCm > MaxSizeCmPerItem {
+		return nil, ErrSizeLimitExceeded
+	}
+
+	tx, err := s.pool.Begin(ctx)
+	if err != nil {
+		return nil, err
+	}
+	defer func() {
+		if err != nil {
+			if rbErr := tx.Rollback(ctx); rbErr != nil {
+				log.Printf("rollback failed: %v", rbErr)
+			}
+		}
+	}()
+
+	var availWeightKg, maxSizeCm float64
+	err = tx.QueryRow(ctx,
+		`SELECT avail_weight_kg, max_size_cm FROM schedules WHERE id = $1 FOR UPDATE`,
+		req.ScheduleID,
+	).Scan(&availWeightKg, &maxSizeCm)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			err = ErrScheduleNotFound
+		}
+		return nil, err
+	}
+
+	if req.WeightKg > availWeightKg {
+		err = ErrCapacityExceeded
+		return nil, err
+	}
+
+	if req.SizeCm > maxSizeCm {
+		err = ErrSizeExceeded
+		return nil, err
+	}
+
+	_, err = tx.Exec(ctx,
+		`UPDATE schedules SET avail_weight_kg = avail_weight_kg - $1 WHERE id = $2`,
+		req.WeightKg, req.ScheduleID,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	trackingNumber := fmt.Sprintf("TRK-%s", uuid.New().String()[:8])
+
+	booking := &model.Booking{
+		ScheduleID:     req.ScheduleID,
+		ShipperID:      req.ShipperID,
+		TrackingNumber: trackingNumber,
+		WeightKg:       req.WeightKg,
+		SizeCm:         req.SizeCm,
+		ContentDesc:    req.ContentDesc,
+		RecipientName:  req.RecipientName,
+		RecipientPhone: req.RecipientPhone,
+		RecipientAddr:  req.RecipientAddr,
+	}
+
+	created, err := s.bookingRepo.Create(ctx, tx, booking)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = tx.Commit(ctx); err != nil {
+		return nil, err
+	}
+
+	return created, nil
 }
 
 func (s *BookingService) ListByShipper(ctx context.Context, shipperID uuid.UUID) ([]model.Booking, error) {

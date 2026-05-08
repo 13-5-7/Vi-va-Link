@@ -19,7 +19,7 @@ func NewBookingHandler(bookingService BookingServiceInterface) *BookingHandler {
 	return &BookingHandler{bookingService: bookingService}
 }
 
-type createBookingRequest struct { //nolint:unused
+type createBookingRequest struct {
 	ScheduleID     uuid.UUID `json:"schedule_id"`
 	WeightKg       float64   `json:"weight_kg"`
 	SizeCm         float64   `json:"size_cm"`
@@ -73,10 +73,67 @@ func (h *BookingHandler) List(c echo.Context) error {
 	return c.JSON(http.StatusOK, map[string]any{"bookings": result})
 }
 
-// Create creates a new booking for the shipper
+// Create 新規予約を作成し、結果をJSON形式で返す
+// POST /api/vi/bookings
 func (h *BookingHandler) Create(c echo.Context) error {
-	// TODO: ここから自分の手で実装する
-    panic("未実装：ここから製造実験開始")
+	log.Println("----handler/booking.go Create called-----")
+
+	userIDStr, ok := c.Get("user_id").(string)
+	if !ok {
+		return utils.NewAppError(http.StatusUnauthorized, "UNAUTHORIZED", "missing user_id")
+	}
+	shipperID, err := uuid.Parse(userIDStr)
+	if err != nil {
+		return utils.NewAppError(http.StatusUnauthorized, "UNAUTHORIZED", "invalid user_id")
+	}
+
+	var req createBookingRequest
+	if err := c.Bind(&req); err != nil {
+		return utils.NewAppError(http.StatusBadRequest, "BAD_REQUEST", "invalid request body")
+	}
+
+	booking, err := h.bookingService.Create(c.Request().Context(), service.CreateBookingRequest{
+		ScheduleID:     req.ScheduleID,
+		ShipperID:      shipperID,
+		WeightKg:       req.WeightKg,
+		SizeCm:         req.SizeCm,
+		ContentDesc:    req.ContentDesc,
+		RecipientName:  req.RecipientName,
+		RecipientPhone: req.RecipientPhone,
+		RecipientAddr:  req.RecipientAddr,
+	})
+	if err != nil {
+		switch {
+		case errors.Is(err, service.ErrCapacityExceeded):
+			return utils.NewAppError(http.StatusConflict, "CAPACITY_EXCEEDED", err.Error())
+		case errors.Is(err, service.ErrSizeExceeded):
+			return utils.NewAppError(http.StatusConflict, "SIZE_EXCEEDED", err.Error())
+		case errors.Is(err, service.ErrWeightLimitExceeded):
+			return utils.NewAppError(http.StatusBadRequest, "WEIGHT_LIMIT_EXCEEDED", "1個あたりの重量は10kg以下にしてください")
+		case errors.Is(err, service.ErrSizeLimitExceeded):
+			return utils.NewAppError(http.StatusBadRequest, "SIZE_LIMIT_EXCEEDED", "3辺合計は140cm以下にしてください")
+		case errors.Is(err, service.ErrScheduleNotFound):
+			return utils.NewAppError(http.StatusNotFound, "NOT_FOUND", err.Error())
+		default:
+			return utils.NewAppError(http.StatusInternalServerError, "INTERNAL_ERROR", "internal server error")
+		}
+	}
+
+	return c.JSON(http.StatusCreated, map[string]any{
+		"id":               booking.ID,
+		"schedule_id":      booking.ScheduleID,
+		"shipper_id":       booking.ShipperID,
+		"tracking_number":  booking.TrackingNumber,
+		"weight_kg":        booking.WeightKg,
+		"size_cm":          booking.SizeCm,
+		"content_desc":     booking.ContentDesc,
+		"recipient_name":   booking.RecipientName,
+		"recipient_phone":  booking.RecipientPhone,
+		"recipient_addr":   booking.RecipientAddr,
+		"status":           booking.Status,
+		"status_updated_at": booking.StatusUpdatedAt,
+		"created_at":       booking.CreatedAt,
+	})
 }
 
 // GetByID returns a single booking by ID

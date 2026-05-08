@@ -42,8 +42,20 @@ func scanBooking(row pgx.Row) (*model.Booking, error) {
 
 // Create はトランザクション内でbookingをINSERTする
 func (r *BookingRepository) Create(ctx context.Context, tx pgx.Tx, booking *model.Booking) (*model.Booking, error) {
-	// TODO: ここから自分の手で実装する
-    panic("未実装：ここから製造実験開始")
+	log.Println("----handler/booking_repo.go Create called-----")
+
+	row := tx.QueryRow(ctx,
+		`INSERT INTO bookings (
+			schedule_id, shipper_id, tracking_number,
+			weight_kg, size_cm, content_desc,
+			recipient_name, recipient_phone, recipient_addr
+		) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
+		RETURNING `+bookingColumns,
+		booking.ScheduleID, booking.ShipperID, booking.TrackingNumber,
+		booking.WeightKg, booking.SizeCm, booking.ContentDesc,
+		booking.RecipientName, booking.RecipientPhone, booking.RecipientAddr,
+	)
+	return scanBooking(row)
 }
 
 // FindByID はIDでbookingを検索する
