@@ -135,5 +135,75 @@
 </template>
 
 <script setup>
+import { ref, reactive, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import axios from 'axios'
+import { API_PATH } from '@/const'
 
+const router = useRouter()
+const loading = ref(true)
+const saving = ref(false)
+const company = ref(null)
+const previewURL = ref('')
+const saveMessage = ref('')
+const saveError = ref(false)
+const form = reactive({ description: '', imageBase64: '' })
+
+// 自社の基本情報取得APIを呼び出し、フォームの初期値を設定する
+// 取得失敗時は画面を空の状態にする（エラーハンドリングは今後の課題）
+async function fetchCompany() {
+  try {
+    const res = await axios.get(API_PATH.COMPANIES_ME)
+    company.value = res.data
+    form.description = res.data.storage_description || ''
+  } catch {
+    // 取得失敗時は情報をクリア。ユーザーへの通知が必要な場合はここに実装
+    company.value = null
+  } finally {
+    loading.value = false
+  }
+}
+
+// 添付画像のバリデーションとプレビュー生成
+// 2MB制限をチェックし、Base64形式で保持する
+function onFileChange(e) {
+  const file = e.target.files[0]
+  if (!file) return
+  if (file.size > 2 * 1024 * 1024) {
+    saveMessage.value = '画像は2MB以下にしてください。'
+    saveError.value = true
+    return
+  }
+  const reader = new FileReader()
+  reader.onload = (ev) => {
+    previewURL.value = ev.target.result
+    form.imageBase64 = ev.target.result // Data URL をそのまま保存
+  }
+  reader.readAsDataURL(file)
+}
+
+// マイページ登録API処理呼び出し
+// 編集内容を保存。画像が未選択の場合は既存のURLを維持する
+async function handleSave() {
+  saving.value = true
+  saveMessage.value = ''
+  saveError.value = false
+  try {
+    const res = await axios.patch(API_PATH.COMPANIES_ME_STORAGE, {
+      storage_image_url: form.imageBase64 || company.value?.storage_image_url || '',
+      storage_description: form.description,
+    })
+    company.value = res.data
+    previewURL.value = ''
+    saveMessage.value = '保存しました。'
+  } catch {
+    saveMessage.value = '保存に失敗しました。'
+    saveError.value = true
+  } finally {
+    saving.value = false
+  }
+}
+
+// 初期表示に必要な自社プロフィールの取得（失敗しても画面は表示させる）
+onMounted(fetchCompany)
 </script>
