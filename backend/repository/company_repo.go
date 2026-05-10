@@ -41,13 +41,28 @@ func (r *CompanyRepository) List(ctx context.Context) ([]model.BusCompany, error
 	return companies, rows.Err()
 }
 
+// FindByID 会社マスタテーブルから指定されたIDに一致する会社レコードを取得する
 func (r *CompanyRepository) FindByID(ctx context.Context, id uuid.UUID) (*model.BusCompany, error) {
-	// TODO: ここから自分の手で実装する
-    panic("未実装：ここから製造実験開始")
+	log.Println("-----repository/company_repo.go FindByID called-----")
+
+	var c model.BusCompany
+	err := r.pool.QueryRow(ctx,
+		`SELECT id, name, COALESCE(storage_image_url,''), storage_description, created_at
+		 FROM bus_companies WHERE id = $1`, id,
+	).Scan(&c.ID, &c.Name, &c.StorageImageURL, &c.StorageDescription, &c.CreatedAt)
+	if err != nil {
+		return nil, err
+	}
+	return &c, nil
 }
 
-// UpdateStorage は荷物置き場の画像URLと説明を更新する
+// UpdateStorage 荷物置き場の画像URLと説明を更新する
 func (r *CompanyRepository) UpdateStorage(ctx context.Context, id uuid.UUID, imageURL, description string) error {
-	// TODO: ここから自分の手で実装する
-    panic("未実装：ここから製造実験開始")
+	log.Println("-----repository/company_repo.go UpdateStorage called-----")
+
+	_, err := r.pool.Exec(ctx,
+		`UPDATE bus_companies SET storage_image_url = $1, storage_description = $2 WHERE id = $3`,
+		imageURL, description, id,
+	)
+	return err
 }
