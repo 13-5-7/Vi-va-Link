@@ -53,9 +53,22 @@ func (r *UserRepository) Create(ctx context.Context, email, passwordHash string,
     panic("未実装：ここから製造実験開始")
 }
 
+// FindByID ユーザマスタテーブルから指定されたIDに一致するユーザレコードを取得する
 func (r *UserRepository) FindByID(ctx context.Context, id uuid.UUID) (*model.User, error) {
-	// TODO: ここから自分の手で実装する
-    panic("未実装：ここから製造実験開始")
+	log.Println("-----repository/user_repo.go FindByID called")
+
+	var u model.User
+	err := r.pool.QueryRow(ctx,
+		`SELECT id, email, password_hash, role, company_id, created_at FROM users WHERE id = $1`,
+		id,
+	).Scan(&u.ID, &u.Email, &u.PasswordHash, &u.Role, &u.CompanyID, &u.CreatedAt)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &u, nil
 }
 
 // SetCompanyID はユーザーの company_id を更新する
