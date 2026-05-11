@@ -15,5 +15,6 @@ export const API_PATH = {
   TRACKING: `${BASE_API}/tracking`,
   COMPANIES: `${BASE_API}/companies`,
   COMPANIES_ME: `${BASE_API}/companies/me`,
-  COMPANIES_ME_STORAGE: `${BASE_API}/companies/me/storage`
+  COMPANIES_ME_STORAGE: `${BASE_API}/companies/me/storage`,
+  AUTH_REGISTER: `${BASE_API}/auth/register`,
 };
