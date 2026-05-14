@@ -82,5 +82,43 @@
 </template>
 
 <script setup>
+import { ref } from 'vue'
+import { useRouter } from 'vue-router'
+import axios from 'axios'
+import { API_PATH } from '@/const'
 
+const router = useRouter()
+const inviteCode = ref('')
+const email = ref('')
+const password = ref('')
+const loading = ref(false)
+const errorMessage = ref('')
+const successMessage = ref('')
+
+// 招待コードを利用したバス会社担当者（オペレーター）の登録処理
+// 前提：管理画面等で事前に有効な招待コードが生成されていること
+async function handleRegister() {
+  loading.value = true
+  errorMessage.value = ''
+  try {
+    await axios.post(API_PATH.AUTH_REGISTER, {
+      email: email.value,
+      password: password.value,
+      role: 'bus_operator',
+      invite_code: inviteCode.value.trim().toUpperCase(),
+    })
+    successMessage.value = '登録が完了しました。ログイン画面からサインインしてください。'
+  } catch (err) {
+    const code = err.response?.data?.error?.code
+    if (code === 'INVALID_INVITE_CODE') {
+      errorMessage.value = '招待コードが無効または使用済みです。バス会社にお問い合わせください。'
+    } else if (code === 'EMAIL_ALREADY_EXISTS') {
+      errorMessage.value = 'このメールアドレスはすでに登録されています。'
+    } else {
+      errorMessage.value = '登録に失敗しました。しばらく経ってから再度お試しください。'
+    }
+  } finally {
+    loading.value = false
+  }
+}
 </script>
