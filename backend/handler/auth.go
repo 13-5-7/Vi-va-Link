@@ -6,7 +6,7 @@ import (
 	"regexp"
 	"log"
 
-	//"github.com/bus-logistics/backend/model"
+	"github.com/bus-logistics/backend/model"
 	"github.com/bus-logistics/backend/service"
 	"github.com/bus-logistics/backend/utils"
 	"github.com/labstack/echo/v4"
@@ -26,7 +26,7 @@ func NewAuthHandler(authService AuthServiceInterface) *AuthHandler {
 	return &AuthHandler{authService: authService}
 }
 
-type registerRequest struct { //nolint:unused
+type registerRequest struct {
 	Email      string `json:"email"`
 	Password   string `json:"password"`
 	Role       string `json:"role"`
@@ -48,10 +48,53 @@ func errResponse(code, message string) map[string]any { //nolint:unused
 	}
 }
 
+// Register 招待コードを使用してオペレーターユーザーを新規登録する
+// 前提：有効な招待コードが事前に発行されている必要あり
 func (h *AuthHandler) Register(c echo.Context) error {
-	// TODO: ここから自分の手で実装する
-    panic("未実装：ここから製造実験開始")
+	log.Println("-----handler/auth.go Register called-----")
+
+	var req registerRequest
+	if err := c.Bind(&req); err != nil {
+		return utils.NewAppError(http.StatusBadRequest, "BAD_REQUEST", "invalid request body") 
+	}
+
+	if utils.IsEmpty(req.Email) || utils.IsEmpty(req.Password) {
+		return utils.NewAppError(http.StatusBadRequest, "VALIDATION_ERROR", "email and password are required") 
+	}
+	if !emailRegex.MatchString(req.Email) {
+		return utils.NewAppError(http.StatusBadRequest, "VALIDATION_ERROR", "invalid email format") 
+	}
+	if len(req.Password) < 8 {
+		return utils.NewAppError(http.StatusBadRequest, "VALIDATION_ERROR", "password must be at least 8 characters") 
+	}
+	if req.Role != string(model.RoleBusOperator) && req.Role != string(model.RoleShipper) {
+		return utils.NewAppError(http.StatusBadRequest, "VALIDATION_ERROR", "role must be 'bus_operator' or 'shipper'") 
+	}
+
+	user, err := h.authService.Register(c.Request().Context(), service.RegisterRequest{
+		Email:      req.Email,
+		Password:   req.Password,
+		Role:       model.Role(req.Role),
+		InviteCode: req.InviteCode,
+	})
+	if err != nil {
+		switch {
+		case errors.Is(err, service.ErrEmailAlreadyExists):
+			return utils.NewAppError(http.StatusConflict, "EMAIL_ALREADY_EXISTS", "email already exists") 
+		case errors.Is(err, service.ErrInvalidInviteCode):
+			return utils.NewAppError(http.StatusBadRequest, "INVALID_INVITE_CODE", "招待コードが無効または使用済みです") 
+		default:
+			return utils.NewAppError(http.StatusInternalServerError, "INTERNAL_ERROR", "internal server error") 
+		}
+	}
+
+	return c.JSON(http.StatusCreated, map[string]any{
+		"user_id": user.ID,
+		"email":   user.Email,
+		"role":    user.Role,
+	})
 }
+
 // Login はユーザー認証を行い、JWTトークンを返却します
 func (h *AuthHandler) Login(c echo.Context) error {
 	log.Println("-----handler/auth.go Login called-----")

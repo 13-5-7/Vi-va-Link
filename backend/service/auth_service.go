@@ -53,9 +53,49 @@ type LoginResponse struct {
 	Role   model.Role
 }
 
+// Register 新しいユーザーをシステムに登録する
+// ロールが BusOperator の場合は招待コードの検証と会社情報の紐付けを行う
 func (s *AuthService) Register(ctx context.Context, req RegisterRequest) (*model.User, error) {
-	// TODO: ここから自分の手で実装する
-    panic("未実装：ここから製造実験開始")
+	log.Println("-----handler/auth_service.go Register called-----")
+
+	if req.Role == model.RoleBusOperator {
+		if utils.IsEmpty(req.InviteCode) {
+			return nil, ErrInvalidInviteCode
+		}
+	}
+
+	existing, err := s.userRepo.FindByEmail(ctx, req.Email)
+	if err != nil {
+		return nil, err
+	}
+	if existing != nil {
+		return nil, ErrEmailAlreadyExists
+	}
+
+	hash, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
+	if err != nil {
+		return nil, err
+	}
+
+	user, err := s.userRepo.Create(ctx, req.Email, string(hash), req.Role)
+	if err != nil {
+		return nil, err
+	}
+
+	if req.Role == model.RoleBusOperator {
+		companyID, err := s.inviteRepo.MarkUsed(ctx, req.InviteCode, user.ID)
+		if err != nil {
+			_ = s.userRepo.Delete(ctx, user.ID)
+			return nil, ErrInvalidInviteCode
+		}
+		if err := s.userRepo.SetCompanyID(ctx, user.ID, companyID); err != nil {
+			_ = s.userRepo.Delete(ctx, user.ID)
+			return nil, err
+		}
+		user.CompanyID = &companyID
+	}
+
+	return user, nil
 }
 
 func (s *AuthService) Login(ctx context.Context, req LoginRequest) (*LoginResponse, error) {
