@@ -58,5 +58,30 @@
 </template>
 
 <script setup>
+import { ref } from 'vue'
+import axios from 'axios'
+import { API_PATH } from '@/const'
 
+const email = ref('')
+const loading = ref(false)
+const successMessage = ref('')
+const errorMessage = ref('')
+
+// パスワードリセットリクエストメールを送信するAPI呼び出し
+async function handleRequest() {
+  loading.value = true
+  errorMessage.value = ''
+  try {
+    await axios.post(API_PATH.AUTH_PASSWORD_RESET_REQUEST, { email: email.value })
+    successMessage.value = 'パスワードリセットの手順をメールで送信しました（登録済みの場合）。'
+  } catch (err) {
+    if (err.response?.status === 429) {
+      errorMessage.value = 'リクエストが多すぎます。しばらく待ってから再試行してください。'
+    } else {
+      errorMessage.value = '送信に失敗しました。しばらく待ってから再試行してください。'
+    }
+  } finally {
+    loading.value = false
+  }
+}
 </script>

@@ -17,4 +17,5 @@ export const API_PATH = {
   COMPANIES_ME: `${BASE_API}/companies/me`,
   COMPANIES_ME_STORAGE: `${BASE_API}/companies/me/storage`,
   AUTH_REGISTER: `${BASE_API}/auth/register`,
+  AUTH_PASSWORD_RESET_REQUEST: `${BASE_API}/auth/password-reset/request`,
 };
